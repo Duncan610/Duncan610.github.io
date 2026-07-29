@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duncan Otieno — Data Engineer</title>
+<meta name="description" content="Data engineer building tested, production-shaped pipelines — from raw ingestion to modeled, decision-ready data.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1b1918;
+    --bg-2: #201d1c;
+    --panel: #242120;
+    --panel-2: #2b2725;
+    --border: #3a3532;
+    --text: #ede8df;
+    --text-muted: #9b948a;
+    --bronze: #a56a43;
+    --silver: #9ca3a8;
+    --gold: #c9a227;
+    --bronze-dim: #4a382c;
+    --silver-dim: #3c3f41;
+    --gold-dim: #4a3f1f;
+    --radius: 10px;
+    --maxw: 1080px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body{
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; margin: 0; letter-spacing: -0.01em; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+
+  ::selection { background: var(--gold-dim); color: var(--text); }
+
+  :focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  .wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ---------- NAV ---------- */
+  header.site {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(27,25,24,0.86);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand {
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand .dot-stage { display: flex; gap: 3px; }
+  .brand .dot-stage span {
+    width: 6px; height: 6px; border-radius: 50%;
+    display: inline-block;
+  }
+  nav.links { display: flex; gap: 28px; font-size: 0.92rem; }
+  nav.links a {
+    text-decoration: none;
+    color: var(--text-muted);
+    transition: color .15s ease;
+  }
+  nav.links a:hover { color: var(--text); }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    padding: 88px 0 64px;
+    border-bottom: 1px solid var(--border);
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px; height: 1px; background: var(--gold);
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 600;
+    max-width: 15ch;
+    line-height: 1.08;
+  }
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--bronze), var(--silver) 50%, var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p.lede {
+    margin-top: 22px;
+    max-width: 58ch;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+  }
+
+  .hero-actions {
+    margin-top: 32px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    transition: border-color .15s ease, transform .15s ease, background .15s ease;
+  }
+  .btn.primary {
+    background: var(--gold);
+    color: #1b1918;
+    border-color: var(--gold);
+    font-weight: 600;
+  }
+  .btn.primary:hover { transform: translateY(-1px); }
+  .btn.ghost { color: var(--text); }
+  .btn.ghost:hover { border-color: var(--silver); color: var(--text); }
+
+  /* Refinement bar — signature element */
+  .refine {
+    margin-top: 56px;
+  }
+  .refine-label-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .refine-label-row span.active { color: var(--text); }
+  .refine-track {
+    display: flex;
+    gap: 4px;
+    height: 10px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .refine-seg {
+    flex: 1;
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: fillseg 1.1s ease forwards;
+  }
+  .refine-seg.raw { background: var(--bronze); animation-delay: .05s; }
+  .refine-seg.validated { background: var(--silver); animation-delay: .55s; }
+  .refine-seg.modeled { background: var(--gold); animation-delay: 1.05s; }
+  @keyframes fillseg { to { transform: scaleX(1); } }
+  @media (prefers-reduced-motion: reduce) {
+    .refine-seg { animation: none; transform: scaleX(1); }
+  }
+
+  .hero-stats {
+    margin-top: 20px;
+    display: flex;
+    gap: 36px;
+    flex-wrap: wrap;
+  }
+  .hero-stats .stat .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .hero-stats .stat .lab {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ---------- SECTION HEADERS ---------- */
+  section { padding: 72px 0; border-bottom: 1px solid var(--border); }
+  section:last-of-type { border-bottom: none; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .section-head h2 { font-size: 1.6rem; font-weight: 600; }
+  .section-head .count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  /* ---------- PROJECT CARDS ---------- */
+  .projects { display: flex; flex-direction: column; gap: 20px; }
+  .project {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px 28px;
+    transition: border-color .18s ease, transform .18s ease;
+  }
+  .project:hover { border-color: var(--silver); transform: translateY(-2px); }
+
+  .project-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .project-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .project h3 { font-size: 1.25rem; }
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 9px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .badge.live { color: var(--gold); border-color: var(--gold-dim); }
+
+  .project-tagline { color: var(--text-muted); margin-top: 6px; max-width: 62ch; }
+
+  .stage-bar { margin-top: 18px; }
+  .stage-labels {
+    display: flex;
+    gap: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .stage-labels span { flex: 1; }
+  .stage-labels span.on { color: var(--text); }
+  .stage-track { display: flex; gap: 4px; height: 6px; }
+  .stage-track div { flex: 1; border-radius: 4px; background: var(--panel-2); }
+  .stage-track div.raw-on { background: var(--bronze); }
+  .stage-track div.validated-on { background: var(--silver); }
+  .stage-track div.modeled-on { background: var(--gold); }
+
+  .metrics {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .metrics .m .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .metrics .m .lab { font-size: 0.76rem; color: var(--text-muted); }
+
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: var(--panel-2);
+    padding: 4px 9px;
+    border-radius: 5px;
+  }
+
+  .project-foot {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .project-note { font-size: 0.85rem; color: var(--text-muted); max-width: 50ch; }
+  .repo-link {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    text-decoration: none;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 7px 14px;
+    border-radius: 6px;
+    white-space: nowrap;
+    transition: border-color .15s ease;
+  }
+  .repo-link:hover { border-color: var(--gold); }
+
+  /* ---------- METHOD ---------- */
+  .method-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .method-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .method-card .stage-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    margin-bottom: 14px;
+  }
+  .method-card.raw .stage-dot { background: var(--bronze); }
+  .method-card.validated .stage-dot { background: var(--silver); }
+  .method-card.modeled .stage-dot { background: var(--gold); }
+  .method-card h3 { font-size: 1.02rem; margin-bottom: 8px; }
+  .method-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+
+  /* ---------- STACK ---------- */
+  .stack-cats { display: flex; flex-direction: column; gap: 24px; }
+  .stack-cat-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: baseline; }
+  .stack-cat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    min-width: 130px;
+  }
+  .stack-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip {
+    font-size: 0.88rem;
+    padding: 6px 13px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  /* ---------- CONTACT / FOOTER ---------- */
+  footer {
+    padding: 60px 0 50px;
+  }
+  .contact-head h2 { font-size: 1.8rem; margin-bottom: 12px; }
+  .contact-head p { color: var(--text-muted); max-width: 50ch; }
+  .contact-links {
+    margin-top: 28px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .foot-bottom {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 760px) {
+    nav.links { display: none; }
+    .method-grid { grid-template-columns: 1fr; }
+    .hero { padding: 64px 0 48px; }
+    section { padding: 52px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="nav-inner">
+    <div class="brand">
+      <span class="dot-stage">
+        <span style="background: var(--bronze)"></span>
+        <span style="background: var(--silver)"></span>
+        <span style="background: var(--gold)"></span>
+      </span>
+      Duncan Otieno
+    </div>
+    <nav class="links">
+      <a href="#work">Work</a>
+      <a href="#method">Method</a>
+      <a href="#stack">Stack</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div class="eyebrow">Data Engineer · Nairobi, Kenya</div>
+    <h1>I take raw, messy data<br>and ship it <em>tested, modeled, and trustworthy.</em></h1>
+    <p class="lede">
+      Five end-to-end pipelines built on Databricks, Snowflake, and dbt — each one carried
+      from raw ingestion through validation to a modeled layer someone could actually make a decision from.
+      Remote-first, targeting data engineering roles across the US, Canada, and Europe.
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn primary" href="#work">See the pipelines</a>
+      <a class="btn ghost" href="https://github.com/Duncan610" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn ghost" href="https://linkedin.com/in/duncan-otieno" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+
+    <div class="refine">
+      <div class="refine-label-row">
+        <span class="active">Raw</span><span class="active">Validated</span><span class="active">Modeled</span>
+      </div>
+      <div class="refine-track">
+        <div class="refine-seg raw"></div>
+        <div class="refine-seg validated"></div>
+        <div class="refine-seg modeled"></div>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="num">5</div>
+        <div class="lab">end-to-end pipelines shipped</div>
+      </div>
+      <div class="stat">
+        <div class="num">125+</div>
+        <div class="lab">passing dbt / test assertions</div>
+      </div>
+      <div class="stat">
+        <div class="num">1</div>
+        <div class="lab">deployed live (Databricks Apps)</div>
+      </div>
+      <div class="stat">
+        <div class="num">AWS CCP</div>
+        <div class="lab">certified cloud practitioner</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="work" class="wrap">
+    <div class="section-head">
+      <h2>Pipelines</h2>
+      <div class="count mono">05 projects</div>
+    </div>
+
+    <div class="projects">
+
+      <!-- EconMate -->
+      <article class="project">
+        <div class="project-top">
+          <div class="project-title-row">
+            <h3>EconMate</h3>
+            <span class="badge">Databricks · Medallion</span>
+          </div>
+        </div>
+        <p class="project-tagline">A weighted Vulnerability Index across 15 Sub-Saharan African countries, built from four independent data sources — motivated by a personal connection to the region's economic and climate exposure.</p>
+
+        <div class="stage-bar">
+          <div class="stage-labels">
+            <span class="on">Raw</span><span class="on">Validated</span><span class="on">Modeled</span>
+          </div>
+          <div class="stage-track">
+            <div class="raw-on"></div><div class="validated-on"></div><div class="modeled-on"></div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="m"><div class="num">4</div><div class="lab">source systems</div></div>
+          <div class="m"><div class="num">15</div><div class="lab">countries indexed</div></div>
+          <div class="m"><div class="num">29</div><div class="lab">test assertions</div></div>
+          <div class="m"><div class="num">✓</div><div class="lab">workflow-orchestrated</div></div>
+        </div>
+
+        <div class="tags">
+          <span class="tag">Databricks</span><span class="tag">PySpark</span><span class="tag">SQL</span>
+          <span class="tag">Databricks Workflows</span>
+        </div>
+
+        <div class="project-foot">
+          <div class="project-note">Reviewed via a structured teardown — five surfaced gaps (test coverage, orchestration evidence, reproducibility) were all resolved.</div>
+          <a class="repo-link" href="https://github.com/Duncan610/econmate" target="_blank" rel="noopener">View repo →</a>
+        </div>
+      </article>
+
+      <!-- Fraud Detection -->
+      <article class="project">
+        <div class="project-top">
+          <div class="project-title-row">
+            <h3>Fraud Detection Pipeline</h3>
+            <span class="badge live">Live</span>
+          </div>
+        </div>
+        <p class="project-tagline">A medallion fraud-detection pipeline on Databricks, deployed live via Databricks Apps — including a bucketed CIDR range-join performance fix and FX-rate currency conversion corrections.</p>
+
+        <div class="stage-bar">
+          <div class="stage-labels">
+            <span class="on">Raw</span><span class="on">Validated</span><span class="on">Modeled</span>
+          </div>
+          <div class="stage-track">
+            <div class="raw-on"></div><div class="validated-on"></div><div class="modeled-on"></div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="m"><div class="num">✓</div><div class="lab">deployed live</div></div>
+          <div class="m"><div class="num">CIDR</div><div class="lab">range-join perf fix</div></div>
+          <div class="m"><div class="num">FX</div><div class="lab">currency bug fix</div></div>
+        </div>
+
+        <div class="tags">
+          <span class="tag">Databricks</span><span class="tag">PySpark</span><span class="tag">Databricks Apps</span>
+        </div>
+
+        <div class="project-foot">
+          <div class="project-note">Workflows orchestration is the final milestone in progress. The CIDR range-join has doubled as a live technical-interview talking point.</div>
+          <a class="repo-link" href="https://github.com/Duncan610/fraud-detection-pipeline" target="_blank" rel="noopener">View repo →</a>
+        </div>
+      </article>
+
+      <!-- F1 -->
+      <article class="project">
+        <div class="project-top">
+          <div class="project-title-row">
+            <h3>F1 Data Modeling</h3>
+            <span class="badge">Unity Catalog · dbt</span>
+          </div>
+        </div>
+        <p class="project-tagline">A lap-by-lap Formula 1 star schema across the 2023–2024 seasons, chosen specifically for dimensional-modeling depth: three fact tables, five dimensions, and an SCD Type 2 driver–constructor history.</p>
+
+        <div class="stage-bar">
+          <div class="stage-labels">
+            <span class="on">Raw</span><span class="on">Validated</span><span class="on">Modeled</span>
+          </div>
+          <div class="stage-track">
+            <div class="raw-on"></div><div class="validated-on"></div><div class="modeled-on"></div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="m"><div class="num">3</div><div class="lab">fact tables</div></div>
+          <div class="m"><div class="num">5</div><div class="lab">dimensions (incl. SCD2)</div></div>
+          <div class="m"><div class="num">39/40</div><div class="lab">dbt tests passing</div></div>
+          <div class="m"><div class="num">50K+</div><div class="lab">lap rows ingested</div></div>
+        </div>
+
+        <div class="tags">
+          <span class="tag">Databricks</span><span class="tag">Unity Catalog</span><span class="tag">dbt-databricks</span>
+          <span class="tag">FastF1</span><span class="tag">Jolpica-F1</span>
+        </div>
+
+        <div class="project-foot">
+          <div class="project-note">The one failing assertion is an expected null on pit-stop duration for drivers who retired mid-pit — documented, not silenced.</div>
+          <a class="repo-link" href="https://github.com/Duncan610/f1-data-modeling" target="_blank" rel="noopener">View repo →</a>
+        </div>
+      </article>
+
+      <!-- UrbanPulse -->
+      <article class="project">
+        <div class="project-top">
+          <div class="project-title-row">
+            <h3>UrbanPulse</h3>
+            <span class="badge">dbt · Snowflake</span>
+          </div>
+        </div>
+        <p class="project-tagline">NYC 311 requests, weather, and census data unified into one idempotent warehouse — with continuous testing and a public dashboard for exploring the result.</p>
+
+        <div class="stage-bar">
+          <div class="stage-labels">
+            <span class="on">Raw</span><span class="on">Validated</span><span class="on">Modeled</span>
+          </div>
+          <div class="stage-track">
+            <div class="raw-on"></div><div class="validated-on"></div><div class="modeled-on"></div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="m"><div class="num">57/57</div><div class="lab">dbt tests passing</div></div>
+          <div class="m"><div class="num">✓</div><div class="lab">idempotent MERGE ingestion</div></div>
+          <div class="m"><div class="num">✓</div><div class="lab">CI/CD on GitHub Actions</div></div>
+        </div>
+
+        <div class="tags">
+          <span class="tag">dbt</span><span class="tag">Snowflake</span><span class="tag">GitHub Actions</span><span class="tag">Streamlit</span>
+        </div>
+
+        <div class="project-foot">
+          <div class="project-note">Sources: NYC 311, OpenWeather, Census ACS5 — one of two foundational projects the current stack was built on.</div>
+          <a class="repo-link" href="https://github.com/Duncan610/urbanpulse" target="_blank" rel="noopener">View repo →</a>
+        </div>
+      </article>
+
+      <!-- MentalHealthPulse -->
+      <article class="project">
+        <div class="project-top">
+          <div class="project-title-row">
+            <h3>MentalHealthPulse</h3>
+            <span class="badge">dlt · DuckDB · dbt</span>
+          </div>
+        </div>
+        <p class="project-tagline">County-level sentiment risk scoring built from live Bluesky (AT Protocol) posts, with NLP sentiment scoring layered on top of a dlt + DuckDB + dbt foundation.</p>
+
+        <div class="stage-bar">
+          <div class="stage-labels">
+            <span class="on">Raw</span><span class="on">Validated</span><span>Modeled</span>
+          </div>
+          <div class="stage-track">
+            <div class="raw-on"></div><div class="validated-on"></div><div></div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="m"><div class="num">✓</div><div class="lab">Milestone 1 complete</div></div>
+          <div class="m"><div class="num">✓</div><div class="lab">dbt tests passing</div></div>
+          <div class="m"><div class="num">NLP</div><div class="lab">sentiment scoring</div></div>
+        </div>
+
+        <div class="tags">
+          <span class="tag">dlt</span><span class="tag">DuckDB</span><span class="tag">dbt</span><span class="tag">Bluesky AT Protocol</span>
+        </div>
+
+        <div class="project-foot">
+          <div class="project-note">Earliest foundational build — validated and passing tests, with the modeled layer still ahead.</div>
+          <a class="repo-link" href="https://github.com/Duncan610/mentalhealthpulse" target="_blank" rel="noopener">View repo →</a>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section id="method" class="wrap">
+    <div class="section-head">
+      <h2>How these get built</h2>
+    </div>
+    <div class="method-grid">
+      <div class="method-card raw">
+        <div class="stage-dot"></div>
+        <h3>Raw</h3>
+        <p>Ingest the source exactly as it arrives — untyped, occasionally malformed, no assumptions made about cleanliness yet.</p>
+      </div>
+      <div class="method-card validated">
+        <div class="stage-dot"></div>
+        <h3>Validated</h3>
+        <p>Type, dedupe, and test. Nulls, duplicates, and referential breaks get named and either fixed or documented as expected.</p>
+      </div>
+      <div class="method-card modeled">
+        <div class="stage-dot"></div>
+        <h3>Modeled</h3>
+        <p>Shape into facts and dimensions someone can actually query — with the history (SCD2, where it matters) preserved correctly.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="stack" class="wrap">
+    <div class="section-head">
+      <h2>Stack</h2>
+    </div>
+    <div class="stack-cats">
+      <div class="stack-cat-row">
+        <div class="stack-cat-label">Compute &amp; storage</div>
+        <div class="stack-chips">
+          <span class="chip">Databricks</span><span class="chip">Delta Lake</span><span class="chip">Unity Catalog</span>
+          <span class="chip">Snowflake</span><span class="chip">DuckDB</span>
+        </div>
+      </div>
+      <div class="stack-cat-row">
+        <div class="stack-cat-label">Transformation</div>
+        <div class="stack-chips">
+          <span class="chip">dbt</span><span class="chip">PySpark</span><span class="chip">SQL</span><span class="chip">Pandas / NumPy</span>
+        </div>
+      </div>
+      <div class="stack-cat-row">
+        <div class="stack-cat-label">Orchestration &amp; CI</div>
+        <div class="stack-chips">
+          <span class="chip">Airflow</span><span class="chip">Databricks Workflows</span><span class="chip">GitHub Actions</span><span class="chip">Docker</span>
+        </div>
+      </div>
+      <div class="stack-cat-row">
+        <div class="stack-cat-label">Ingestion &amp; other</div>
+        <div class="stack-chips">
+          <span class="chip">dlt</span><span class="chip">PostgreSQL</span><span class="chip">MySQL</span><span class="chip">Jupyter</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="contact" class="wrap">
+    <div class="contact-head">
+      <h2>Let's talk pipelines.</h2>
+      <p>Open to remote junior / entry-level data engineering roles across the US, Canada, and Europe.</p>
+    </div>
+    <div class="contact-links">
+      <a class="btn primary" href="https://linkedin.com/in/duncan-otieno" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn ghost" href="https://github.com/Duncan610" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="foot-bottom">
+      <span>Duncan Otieno — Nairobi, Kenya</span>
+      <span class="mono">raw → validated → modeled</span>
+    </div>
+  </footer>
+</main>
+
+</body>
+</html>
