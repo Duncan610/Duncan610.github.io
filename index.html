@@ -4,738 +4,831 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Duncan Otieno — Data Engineer</title>
-<meta name="description" content="Data engineer building tested, production-shaped pipelines — from raw ingestion to modeled, decision-ready data.">
+<meta name="description" content="Duncan Otieno, Data engineer in Nairobi building production-grade data pipelines on Databricks, Snowflake, and Airflow.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #1b1918;
-    --bg-2: #201d1c;
-    --panel: #242120;
-    --panel-2: #2b2725;
-    --border: #3a3532;
-    --text: #ede8df;
-    --text-muted: #9b948a;
-    --bronze: #a56a43;
-    --silver: #9ca3a8;
-    --gold: #c9a227;
-    --bronze-dim: #4a382c;
-    --silver-dim: #3c3f41;
-    --gold-dim: #4a3f1f;
-    --radius: 10px;
-    --maxw: 1080px;
+    --bg: #060b18;
+    --bg-rise: #0a1226;
+    --panel: #0e1a33;
+    --panel-hover: #12213f;
+    --line: #1c2d4e;
+    --accent: #35c7ff;
+    --accent-soft: #7fdcff;
+    --accent-deep: #1c6fd1;
+    --text: #e7eef9;
+    --text-dim: #8fa3c4;
+    --text-faint: #556a8f;
+    --progress: #f2b84b;
+    --max: 1080px;
   }
 
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
   body{
-    margin: 0;
+    margin:0;
     background: var(--bg);
     color: var(--text);
-    font-family: 'IBM Plex Sans', sans-serif;
-    line-height: 1.55;
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  h1,h2,h3{
+    font-family: 'Shantell Sans', cursive, sans-serif;
+    line-height: 1.15;
+    margin: 0 0 .5em;
+    letter-spacing: -0.01em;
+  }
+  a{ color: inherit; }
+  .mono{ font-family: 'IBM Plex Mono', monospace; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
   }
 
-  h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; margin: 0; letter-spacing: -0.01em; }
-  .mono { font-family: 'IBM Plex Mono', monospace; }
-  a { color: inherit; }
-
-  ::selection { background: var(--gold-dim); color: var(--text); }
-
-  :focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 3px;
+  /* ---------- ambient background: drifting aurora ---------- */
+  .aurora{
+    position: fixed; inset: 0; z-index: 0;
+    overflow: hidden; pointer-events: none;
+  }
+  .aurora .blob{
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: .28;
+    mix-blend-mode: screen;
+  }
+  .aurora .b1{
+    width: 46vw; height: 46vw; top: -12%; left: -10%;
+    background: radial-gradient(circle, var(--accent-deep), transparent 70%);
+    animation: drift-a 26s ease-in-out infinite;
+  }
+  .aurora .b2{
+    width: 40vw; height: 40vw; top: 30%; right: -14%;
+    background: radial-gradient(circle, var(--accent), transparent 70%);
+    animation: drift-b 32s ease-in-out infinite;
+  }
+  .aurora .b3{
+    width: 34vw; height: 34vw; bottom: -14%; left: 20%;
+    background: radial-gradient(circle, #7a5cff, transparent 70%);
+    opacity: .16;
+    animation: drift-c 38s ease-in-out infinite;
+  }
+  @keyframes drift-a{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(6vw, 8vh) scale(1.15); }
+  }
+  @keyframes drift-b{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(-8vw, -6vh) scale(1.1); }
+  }
+  @keyframes drift-c{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(5vw, -5vh) scale(1.2); }
   }
 
-  .wrap {
-    max-width: var(--maxw);
+  /* cursor-tracked glow */
+  .cursor-glow{
+    position: fixed; z-index: 1; inset: 0;
+    pointer-events: none;
+    background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 50%), rgba(53,199,255,0.10), transparent 70%);
+    transition: opacity .3s ease;
+    opacity: 0;
+  }
+  .cursor-glow.active{ opacity: 1; }
+
+  nav, section, footer{ position: relative; z-index: 2; }
+
+  /* ---------- scroll reveal ---------- */
+  .reveal{
+    opacity: 0;
+    transition: opacity .7s cubic-bezier(.22,.8,.28,1), transform .7s cubic-bezier(.22,.8,.28,1);
+  }
+  .reveal-up{ transform: translateY(28px); }
+  .reveal-left{ transform: translateX(-32px); }
+  .reveal-right{ transform: translateX(32px); }
+  .reveal-scale{ transform: scale(.94); }
+  .reveal.in-view{ opacity: 1; transform: none; }
+
+  /* stations light up as the pipeline reaches them */
+  .station-node{ transition: box-shadow .5s ease, background .5s ease, border-color .5s ease; }
+  .station.active .station-node{
+    box-shadow: 0 0 0 4px rgba(53,199,255,0.18), 0 0 22px 4px rgba(53,199,255,0.55);
+  }
+  .station.in-progress.active .station-node{
+    box-shadow: 0 0 0 4px rgba(242,184,75,0.18), 0 0 22px 4px rgba(242,184,75,0.5);
+  }
+  .station.active .card{ border-color: var(--accent-deep); }
+  .station.in-progress.active .card{ border-color: var(--progress); }
+
+  /* traveling data pulse along the rail */
+  .pipeline-rail .pulse{
+    position: absolute; left: -3px; width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    box-shadow: 0 0 8px 2px var(--accent), 0 0 18px 4px var(--accent-deep);
+    animation: pulse-travel 3.6s cubic-bezier(.45,0,.55,1) infinite;
+  }
+  @keyframes pulse-travel{
+    0%{ top: 0%; opacity: 0; }
+    6%{ opacity: 1; }
+    92%{ opacity: 1; }
+    100%{ top: 100%; opacity: 0; }
+  }
+
+  /* shimmering gradient text in the hero */
+  .hero h1 em{
+    background-size: 220% auto;
+    animation: shimmer 5s ease-in-out infinite;
+  }
+  @keyframes shimmer{
+    0%{ background-position: 0% center; }
+    50%{ background-position: 100% center; }
+    100%{ background-position: 0% center; }
+  }
+
+  /* card tilt-on-hover */
+  .card{ will-change: transform; transform-style: preserve-3d; }
+  .card-inner-glow{
+    position:absolute; inset:0; border-radius: inherit;
+    background: radial-gradient(220px circle at var(--px,50%) var(--py,50%), rgba(53,199,255,0.14), transparent 60%);
+    opacity: 0; transition: opacity .25s ease;
+    pointer-events: none;
+  }
+  .card:hover .card-inner-glow{ opacity: 1; }
+
+  /* ---------- layout shell ---------- */
+  .wrap{
+    max-width: var(--max);
     margin: 0 auto;
     padding: 0 28px;
   }
+  section{ position: relative; padding: 120px 0; }
+  @media (max-width: 640px){ section{ padding: 80px 0; } }
 
-  /* ---------- NAV ---------- */
-  header.site {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(27,25,24,0.86);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border);
+  /* ---------- nav ---------- */
+  nav{
+    position: fixed; top:0; left:0; right:0; z-index: 50;
+    background: rgba(6,11,24,0.72);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
   }
-  .nav-inner {
-    max-width: var(--maxw);
-    margin: 0 auto;
-    padding: 16px 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  nav .wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-top: 16px; padding-bottom:16px;
   }
-  .brand {
-    font-size: 1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .brand{
+    font-family:'Shantell Sans', cursive, sans-serif;
+    font-weight:600; font-size:1.05rem; text-decoration:none;
+    display:flex; align-items:center; gap:8px;
   }
-  .brand .dot-stage { display: flex; gap: 3px; }
-  .brand .dot-stage span {
-    width: 6px; height: 6px; border-radius: 50%;
-    display: inline-block;
+  .brand-dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent), 0 0 22px var(--accent-deep);
+    animation: pulse-dot 2.4s ease-in-out infinite;
   }
-  nav.links { display: flex; gap: 28px; font-size: 0.92rem; }
-  nav.links a {
-    text-decoration: none;
-    color: var(--text-muted);
-    transition: color .15s ease;
+  @keyframes pulse-dot{ 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.55; transform:scale(.8);} }
+  nav ul{
+    list-style:none; display:flex; gap:28px; margin:0; padding:0;
   }
-  nav.links a:hover { color: var(--text); }
+  nav a.navlink{
+    text-decoration:none; color: var(--text-dim); font-size:.92rem; font-weight:500;
+    transition: color .2s ease;
+  }
+  nav a.navlink:hover{ color: var(--accent-soft); }
+  @media (max-width: 640px){ nav ul{ display:none; } }
 
-  /* ---------- HERO ---------- */
-  .hero {
-    padding: 88px 0 64px;
-    border-bottom: 1px solid var(--border);
+  /* ---------- hero ---------- */
+  .hero{
+    min-height: 100svh;
+    display:flex; align-items:center;
+    padding-top: 100px;
+    overflow: hidden;
   }
-  .eyebrow {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--gold);
+  #hero-canvas{
+    position:absolute; inset:0; z-index:0;
+    width:100%; height:100%;
+    opacity:.55;
+  }
+  .hero .wrap{ position:relative; z-index:1; }
+  .kicker{
+    color: var(--accent-soft);
+    font-size: .95rem;
     margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
   }
-  .eyebrow::before {
-    content: "";
-    width: 22px; height: 1px; background: var(--gold);
-    display: inline-block;
-  }
-  .hero h1 {
-    font-size: clamp(2.2rem, 5vw, 3.4rem);
-    font-weight: 600;
+  .hero h1{
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
     max-width: 15ch;
-    line-height: 1.08;
+    font-weight: 600;
   }
-  .hero h1 em {
+  .hero h1 em{
     font-style: normal;
-    background: linear-gradient(90deg, var(--bronze), var(--silver) 50%, var(--gold));
+    background: linear-gradient(100deg, var(--accent-soft), var(--accent-deep));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .hero p.lede {
+  .hero p.lede{
+    max-width: 56ch;
+    color: var(--text-dim);
+    font-size: 1.08rem;
     margin-top: 22px;
-    max-width: 58ch;
-    color: var(--text-muted);
-    font-size: 1.05rem;
   }
+  .hero-actions{ display:flex; gap:16px; margin-top:36px; flex-wrap:wrap; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 12px 22px; border-radius: 8px;
+    text-decoration:none; font-weight:600; font-size:.95rem;
+    transition: transform .18s ease, border-color .18s ease, background .18s ease;
+  }
+  .btn-primary{
+    background: linear-gradient(120deg, var(--accent-deep), var(--accent));
+    color: #06111f;
+  }
+  .btn-primary:hover{ transform: translateY(-2px); }
+  .btn-ghost{
+    border: 1px solid var(--line);
+    color: var(--text);
+  }
+  .btn-ghost:hover{ border-color: var(--accent); color: var(--accent-soft); transform: translateY(-2px); }
 
-  .hero-actions {
-    margin-top: 32px;
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
+  .scroll-cue{
+    position:absolute; bottom: 40px; left:50%; transform: translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    color: var(--text-faint); font-size:.8rem;
   }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 20px;
-    border-radius: 999px;
-    text-decoration: none;
-    font-size: 0.92rem;
-    font-weight: 500;
-    border: 1px solid var(--border);
-    transition: border-color .15s ease, transform .15s ease, background .15s ease;
+  .scroll-cue .stem{
+    width:1px; height: 34px;
+    background: linear-gradient(var(--accent), transparent);
+    animation: cue-flow 1.8s ease-in-out infinite;
   }
-  .btn.primary {
-    background: var(--gold);
-    color: #1b1918;
-    border-color: var(--gold);
-    font-weight: 600;
-  }
-  .btn.primary:hover { transform: translateY(-1px); }
-  .btn.ghost { color: var(--text); }
-  .btn.ghost:hover { border-color: var(--silver); color: var(--text); }
+  @keyframes cue-flow{ 0%{ opacity:.2 } 50%{ opacity:1 } 100%{ opacity:.2 } }
 
-  /* Refinement bar — signature element */
-  .refine {
-    margin-top: 56px;
+  /* ---------- section headers ---------- */
+  .section-head{ max-width: 62ch; margin-bottom: 56px; }
+  .section-head .kicker{ margin-bottom: 10px; }
+  .section-head h2{ font-size: clamp(1.7rem, 3.4vw, 2.3rem); }
+  .section-head p{ color: var(--text-dim); }
+
+  /* ---------- about ---------- */
+  .about-grid{
+    display:grid; grid-template-columns: 1.3fr 1fr; gap: 56px;
+    align-items:start;
   }
-  .refine-label-row {
-    display: flex;
-    justify-content: space-between;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 8px;
+  @media (max-width: 800px){ .about-grid{ grid-template-columns:1fr; } }
+  .about-copy p{ color: var(--text-dim); margin: 0 0 18px; max-width: 58ch; }
+  .about-copy strong{ color: var(--text); font-weight:600; }
+
+  .cert-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+  .cert-list li{
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display:flex; flex-direction:column; gap:4px;
   }
-  .refine-label-row span.active { color: var(--text); }
-  .refine-track {
-    display: flex;
-    gap: 4px;
-    height: 10px;
-    border-radius: 6px;
+  .cert-list .cert-name{ font-weight:600; font-size:.96rem; }
+  .cert-list .cert-sub{ color: var(--text-faint); font-size:.83rem; }
+
+  /* ---------- pipeline / projects ---------- */
+  .pipeline{
+    position: relative;
+    padding-left: 44px;
+  }
+  .pipeline-rail{
+    position:absolute; left: 9px; top: 6px; bottom: 6px; width: 2px;
+  }
+  .pipeline-rail svg{ position:absolute; top:0; left:-1px; height:100%; width:4px; overflow:visible; }
+  .pipeline-rail .rail-bg{
+    position:absolute; inset:0; width:2px; left:1px;
+    background: var(--line);
+  }
+  .flow-line{
+    stroke: var(--accent);
+    stroke-width: 2;
+    fill:none;
+    stroke-dasharray: 6 10;
+    animation: flow 1.6s linear infinite;
+    opacity: .9;
+  }
+  @keyframes flow{ to{ stroke-dashoffset: -32; } }
+
+  .station{
+    position:relative;
+    margin-bottom: 64px;
+  }
+  .station:last-child{ margin-bottom: 0; }
+  .station-node{
+    position:absolute; left: -44px; top: 6px;
+    width: 20px; height:20px; border-radius:50%;
+    background: var(--bg-rise);
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 4px rgba(53,199,255,0.08);
+  }
+  .station.in-progress .station-node{
+    border-color: var(--progress);
+    box-shadow: 0 0 0 4px rgba(242,184,75,0.1);
+  }
+  .station-node::after{
+    content:''; position:absolute; inset:4px; border-radius:50%;
+    background: var(--accent);
+  }
+  .station.in-progress .station-node::after{ background: var(--progress); }
+
+  .card{
+    position: relative;
     overflow: hidden;
     background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 30px 32px;
+    transition: border-color .2s ease, background .2s ease, transform .2s ease;
   }
-  .refine-seg {
-    flex: 1;
-    transform: scaleX(0);
-    transform-origin: left;
-    animation: fillseg 1.1s ease forwards;
-  }
-  .refine-seg.raw { background: var(--bronze); animation-delay: .05s; }
-  .refine-seg.validated { background: var(--silver); animation-delay: .55s; }
-  .refine-seg.modeled { background: var(--gold); animation-delay: 1.05s; }
-  @keyframes fillseg { to { transform: scaleX(1); } }
-  @media (prefers-reduced-motion: reduce) {
-    .refine-seg { animation: none; transform: scaleX(1); }
-  }
+  .card:hover{ border-color: var(--accent-deep); background: var(--panel-hover); transform: translateY(-3px); }
+  .station.in-progress .card:hover{ border-color: var(--progress); }
 
-  .hero-stats {
-    margin-top: 20px;
-    display: flex;
-    gap: 36px;
-    flex-wrap: wrap;
+  .card-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;
+    margin-bottom: 12px;
   }
-  .hero-stats .stat .num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .hero-stats .stat .lab {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
-
-  /* ---------- SECTION HEADERS ---------- */
-  section { padding: 72px 0; border-bottom: 1px solid var(--border); }
-  section:last-of-type { border-bottom: none; }
-  .section-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 40px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .section-head h2 { font-size: 1.6rem; font-weight: 600; }
-  .section-head .count {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.82rem;
-    color: var(--text-muted);
-  }
-
-  /* ---------- PROJECT CARDS ---------- */
-  .projects { display: flex; flex-direction: column; gap: 20px; }
-  .project {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 26px 28px;
-    transition: border-color .18s ease, transform .18s ease;
-  }
-  .project:hover { border-color: var(--silver); transform: translateY(-2px); }
-
-  .project-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  .project-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .project h3 { font-size: 1.25rem; }
-  .badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 3px 9px;
-    border-radius: 5px;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-  }
-  .badge.live { color: var(--gold); border-color: var(--gold-dim); }
-
-  .project-tagline { color: var(--text-muted); margin-top: 6px; max-width: 62ch; }
-
-  .stage-bar { margin-top: 18px; }
-  .stage-labels {
-    display: flex;
-    gap: 4px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-  }
-  .stage-labels span { flex: 1; }
-  .stage-labels span.on { color: var(--text); }
-  .stage-track { display: flex; gap: 4px; height: 6px; }
-  .stage-track div { flex: 1; border-radius: 4px; background: var(--panel-2); }
-  .stage-track div.raw-on { background: var(--bronze); }
-  .stage-track div.validated-on { background: var(--silver); }
-  .stage-track div.modeled-on { background: var(--gold); }
-
-  .metrics {
-    display: flex;
-    gap: 22px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-  }
-  .metrics .m .num {
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 600;
-    font-size: 1.05rem;
-  }
-  .metrics .m .lab { font-size: 0.76rem; color: var(--text-muted); }
-
-  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
-  .tag {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    background: var(--panel-2);
-    padding: 4px 9px;
-    border-radius: 5px;
-  }
-
-  .project-foot {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .project-note { font-size: 0.85rem; color: var(--text-muted); max-width: 50ch; }
-  .repo-link {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.82rem;
-    text-decoration: none;
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 7px 14px;
-    border-radius: 6px;
+  .card-top h3{ font-size: 1.28rem; margin:0; }
+  .status-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: .72rem;
+    color: var(--progress);
+    border: 1px solid rgba(242,184,75,0.4);
+    padding: 4px 10px; border-radius: 999px;
     white-space: nowrap;
-    transition: border-color .15s ease;
   }
-  .repo-link:hover { border-color: var(--gold); }
+  .card p.desc{ color: var(--text-dim); margin: 0 0 18px; max-width: 66ch; }
 
-  /* ---------- METHOD ---------- */
-  .method-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
-  }
-  .method-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-  }
-  .method-card .stage-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    margin-bottom: 14px;
-  }
-  .method-card.raw .stage-dot { background: var(--bronze); }
-  .method-card.validated .stage-dot { background: var(--silver); }
-  .method-card.modeled .stage-dot { background: var(--gold); }
-  .method-card h3 { font-size: 1.02rem; margin-bottom: 8px; }
-  .method-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+  .stat-row{ display:flex; gap: 22px; flex-wrap:wrap; margin-bottom: 18px; }
+  .stat{ display:flex; flex-direction:column; }
+  .stat .num{ font-family:'IBM Plex Mono', monospace; color: var(--accent-soft); font-size: 1.05rem; }
+  .stat .label{ color: var(--text-faint); font-size: .78rem; }
 
-  /* ---------- STACK ---------- */
-  .stack-cats { display: flex; flex-direction: column; gap: 24px; }
-  .stack-cat-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: baseline; }
-  .stack-cat-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-    min-width: 130px;
-  }
-  .stack-chips { display: flex; gap: 10px; flex-wrap: wrap; }
-  .chip {
-    font-size: 0.88rem;
-    padding: 6px 13px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--panel);
+  .tag-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 20px; }
+  .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: .74rem;
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+    padding: 5px 10px;
+    border-radius: 6px;
   }
 
-  /* ---------- CONTACT / FOOTER ---------- */
-  footer {
-    padding: 60px 0 50px;
+  .card-links{ display:flex; gap:20px; }
+  .card-links a{
+    text-decoration:none; font-size:.88rem; font-weight:600;
+    color: var(--accent-soft);
+    display:inline-flex; align-items:center; gap:6px;
   }
-  .contact-head h2 { font-size: 1.8rem; margin-bottom: 12px; }
-  .contact-head p { color: var(--text-muted); max-width: 50ch; }
-  .contact-links {
-    margin-top: 28px;
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  .foot-bottom {
-    margin-top: 56px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-  }
+  .card-links a:hover{ color: var(--accent); }
+  .card-links a svg{ width:15px; height:15px; }
 
-  @media (max-width: 760px) {
-    nav.links { display: none; }
-    .method-grid { grid-template-columns: 1fr; }
-    .hero { padding: 64px 0 48px; }
-    section { padding: 52px 0; }
+  /* ---------- skills ---------- */
+  .skill-groups{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  @media (max-width: 760px){ .skill-groups{ grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px){ .skill-groups{ grid-template-columns: 1fr; } }
+  .skill-group h3{ font-size: 1rem; color: var(--accent-soft); margin-bottom: 14px; font-family:'Shantell Sans', cursive, sans-serif; font-weight:600; }
+  .skill-group ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
+  .skill-group li{ color: var(--text-dim); font-size:.94rem; font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- contact ---------- */
+  .contact-card{
+    background: linear-gradient(135deg, var(--panel), var(--bg-rise));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 56px;
+    text-align:center;
   }
+  @media (max-width: 640px){ .contact-card{ padding: 40px 24px; } }
+  .contact-card h2{ font-size: clamp(1.6rem, 3.6vw, 2.2rem); max-width: 20ch; margin: 0 auto 16px; }
+  .contact-card p{ color: var(--text-dim); max-width: 46ch; margin: 0 auto 30px; }
+  .contact-actions{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+
+  footer{ padding: 36px 0 60px; text-align:center; color: var(--text-faint); font-size:.85rem; }
 </style>
 </head>
 <body>
 
-<header class="site">
-  <div class="nav-inner">
-    <div class="brand">
-      <span class="dot-stage">
-        <span style="background: var(--bronze)"></span>
-        <span style="background: var(--silver)"></span>
-        <span style="background: var(--gold)"></span>
-      </span>
-      Duncan Otieno
-    </div>
-    <nav class="links">
-      <a href="#work">Work</a>
-      <a href="#method">Method</a>
-      <a href="#stack">Stack</a>
-      <a href="#contact">Contact</a>
-    </nav>
+<div class="aurora" aria-hidden="true">
+  <span class="blob b1"></span>
+  <span class="blob b2"></span>
+  <span class="blob b3"></span>
+</div>
+<div class="cursor-glow" aria-hidden="true"></div>
+
+<nav>
+  <div class="wrap">
+    <a href="#" class="brand"><span class="brand-dot"></span>Duncan Otieno</a>
+    <ul>
+      <li><a class="navlink" href="#about">About</a></li>
+      <li><a class="navlink" href="#projects">Projects</a></li>
+      <li><a class="navlink" href="#skills">Stack</a></li>
+      <li><a class="navlink" href="#contact">Contact</a></li>
+    </ul>
   </div>
-</header>
+</nav>
 
-<main>
-  <section class="hero wrap">
-    <div class="eyebrow">Data Engineer · Nairobi, Kenya</div>
-    <h1>I take raw, messy data<br>and ship it <em>tested, modeled, and trustworthy.</em></h1>
-    <p class="lede">
-      Five end-to-end pipelines built on Databricks, Snowflake, and dbt — each one carried
-      from raw ingestion through validation to a modeled layer someone could actually make a decision from.
-      Remote-first, targeting data engineering roles across the US, Canada, and Europe.
-    </p>
-
+<section class="hero" id="top">
+  <canvas id="hero-canvas"></canvas>
+  <div class="wrap">
+    <div class="kicker mono">Nairobi, Kenya → remote data engineering roles</div>
+    <h1>I build the pipelines nobody sees,<br>so the <em>numbers everyone trusts</em> show up on time.</h1>
+    <p class="lede">Data engineer working across Databricks, Snowflake, dbt, and Airflow turning messy, multi-source data into governed, tested marts that hold up under real questions.</p>
     <div class="hero-actions">
-      <a class="btn primary" href="#work">See the pipelines</a>
-      <a class="btn ghost" href="https://github.com/Duncan610" target="_blank" rel="noopener">GitHub</a>
-      <a class="btn ghost" href="https://linkedin.com/in/duncan-otieno" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn btn-primary" href="#projects">See the pipelines</a>
+      <a class="btn btn-ghost" href="mailto:otienoduncan99@gmail.com">Get in touch</a>
     </div>
+  </div>
+  <div class="scroll-cue"><span class="stem"></span>scroll</div>
+</section>
 
-    <div class="refine">
-      <div class="refine-label-row">
-        <span class="active">Raw</span><span class="active">Validated</span><span class="active">Modeled</span>
+<section id="about">
+  <div class="wrap">
+    <div class="about-grid">
+      <div class="about-copy reveal reveal-left">
+        <h2>From finance to fact tables</h2>
+        <p>Data engineer who has built pipelines end to end, from raw ingestion through tested, documented gold-layer marts.</p>
+        <p>I write up every engineering decision: including the bugs because that's usually the part interviewers actually want to talk about.</p>
+        <p>Currently looking for a <strong>junior or entry-level data engineering role</strong>.</p>
       </div>
-      <div class="refine-track">
-        <div class="refine-seg raw"></div>
-        <div class="refine-seg validated"></div>
-        <div class="refine-seg modeled"></div>
-      </div>
+      <ul class="cert-list reveal reveal-right">
+        <li>
+          <span class="cert-name">AWS Certified Cloud Practitioner</span>
+          <span class="cert-sub">Amazon Web Services</span>
+        </li>
+        <li>
+          <span class="cert-name">Kubernetes and Cloud Native Associate (KCNA)</span>
+          <span class="cert-sub">Linux Foundation / CNCF</span>
+        </li>
+      </ul>
     </div>
+  </div>
+</section>
 
-    <div class="hero-stats">
-      <div class="stat">
-        <div class="num">5</div>
-        <div class="lab">end-to-end pipelines shipped</div>
-      </div>
-      <div class="stat">
-        <div class="num">125+</div>
-        <div class="lab">passing dbt / test assertions</div>
-      </div>
-      <div class="stat">
-        <div class="num">1</div>
-        <div class="lab">deployed live (Databricks Apps)</div>
-      </div>
-      <div class="stat">
-        <div class="num">AWS CCP</div>
-        <div class="lab">certified cloud practitioner</div>
-      </div>
-    </div>
-  </section>
-
-  <section id="work" class="wrap">
+<section id="projects">
+  <div class="wrap">
     <div class="section-head">
-      <h2>Pipelines</h2>
-      <div class="count mono">05 projects</div>
+      <div class="kicker mono">// six pipelines, bronze to gold</div>
+      <h2>Projects</h2>
+      <p>Each one below moves real data through a medallion architecture: raw, cleaned, and modeled on a different stack, for a different question.</p>
     </div>
 
-    <div class="projects">
+    <div class="pipeline">
+      <div class="pipeline-rail">
+        <div class="rail-bg"></div>
+        <svg preserveAspectRatio="none" viewBox="0 0 4 100" width="4" height="100%">
+          <line class="flow-line" x1="2" y1="0" x2="2" y2="100" vector-effect="non-scaling-stroke"></line>
+        </svg>
+        <div class="pulse"></div>
+      </div>
 
       <!-- EconMate -->
-      <article class="project">
-        <div class="project-top">
-          <div class="project-title-row">
+      <div class="station reveal reveal-up">
+        <div class="station-node"></div>
+        <div class="card">
+          <div class="card-inner-glow"></div>
+          <div class="card-top">
             <h3>EconMate</h3>
-            <span class="badge">Databricks · Medallion</span>
+          </div>
+          <p class="desc">A weighted Vulnerability Index across 15 Sub-Saharan African countries a four-source medallion pipeline on Databricks, motivated by a personal connection to the region's economic and climate pressures.</p>
+          <div class="stat-row">
+            <div class="stat"><span class="num">15</span><span class="label">countries indexed</span></div>
+            <div class="stat"><span class="num">29/29</span><span class="label">assertions passing</span></div>
+            <div class="stat"><span class="num">4</span><span class="label">source pipeline</span></div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Databricks</span><span class="tag">PySpark</span><span class="tag">Unity Catalog</span><span class="tag">Delta Lake</span><span class="tag">SQL Dashboard</span>
+          </div>
+          <div class="card-links">
+            <a href="https://github.com/Duncan610/econmate" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.98 5.24.98 11.52c0 5.02 3.26 9.28 7.79 10.79.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.11-3.17.69-3.84-1.35-3.84-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.06-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.17.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.18-1.48 3.14-1.17 3.14-1.17.62 1.57.23 2.73.11 3.02.73.8 1.17 1.82 1.17 3.06 0 4.37-2.67 5.34-5.21 5.62.41.36.77 1.06.77 2.14 0 1.55-.01 2.79-.01 3.17 0 .3.2.66.79.55A11.52 11.52 0 0 0 23.02 11.5C23.02 5.24 18.27.5 12 .5Z"/></svg>
+              Source
+            </a>
           </div>
         </div>
-        <p class="project-tagline">A weighted Vulnerability Index across 15 Sub-Saharan African countries, built from four independent data sources — motivated by a personal connection to the region's economic and climate exposure.</p>
-
-        <div class="stage-bar">
-          <div class="stage-labels">
-            <span class="on">Raw</span><span class="on">Validated</span><span class="on">Modeled</span>
-          </div>
-          <div class="stage-track">
-            <div class="raw-on"></div><div class="validated-on"></div><div class="modeled-on"></div>
-          </div>
-        </div>
-
-        <div class="metrics">
-          <div class="m"><div class="num">4</div><div class="lab">source systems</div></div>
-          <div class="m"><div class="num">15</div><div class="lab">countries indexed</div></div>
-          <div class="m"><div class="num">29</div><div class="lab">test assertions</div></div>
-          <div class="m"><div class="num">✓</div><div class="lab">workflow-orchestrated</div></div>
-        </div>
-
-        <div class="tags">
-          <span class="tag">Databricks</span><span class="tag">PySpark</span><span class="tag">SQL</span>
-          <span class="tag">Databricks Workflows</span>
-        </div>
-
-        <div class="project-foot">
-          <div class="project-note">Reviewed via a structured teardown — five surfaced gaps (test coverage, orchestration evidence, reproducibility) were all resolved.</div>
-          <a class="repo-link" href="https://github.com/Duncan610/econmate" target="_blank" rel="noopener">View repo →</a>
-        </div>
-      </article>
+      </div>
 
       <!-- Fraud Detection -->
-      <article class="project">
-        <div class="project-top">
-          <div class="project-title-row">
+      <div class="station reveal reveal-up">
+        <div class="station-node"></div>
+        <div class="card">
+          <div class="card-inner-glow"></div>
+          <div class="card-top">
             <h3>Fraud Detection Pipeline</h3>
-            <span class="badge live">Live</span>
+          </div>
+          <p class="desc">A six-source medallion pipeline over 1.47M transactions, enriching every row with IP geolocation via a bucketed CIDR range-join and live FX-rate conversion, deployed as a working Databricks Apps dashboard.</p>
+          <div class="stat-row">
+            <div class="stat"><span class="num">1.47M</span><span class="label">rows processed</span></div>
+            <div class="stat"><span class="num">6</span><span class="label">source systems</span></div>
+            <div class="stat"><span class="num">Live</span><span class="label">Databricks Apps deploy</span></div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Databricks</span><span class="tag">PySpark</span><span class="tag">Delta Lake</span><span class="tag">Databricks Apps</span><span class="tag">Streamlit</span>
+          </div>
+          <div class="card-links">
+            <a href="https://github.com/Duncan610/fraud-detection-databricks-pipeline" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.98 5.24.98 11.52c0 5.02 3.26 9.28 7.79 10.79.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.11-3.17.69-3.84-1.35-3.84-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.06-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.17.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.18-1.48 3.14-1.17 3.14-1.17.62 1.57.23 2.73.11 3.02.73.8 1.17 1.82 1.17 3.06 0 4.37-2.67 5.34-5.21 5.62.41.36.77 1.06.77 2.14 0 1.55-.01 2.79-.01 3.17 0 .3.2.66.79.55A11.52 11.52 0 0 0 23.02 11.5C23.02 5.24 18.27.5 12 .5Z"/></svg>
+              Source
+            </a>
           </div>
         </div>
-        <p class="project-tagline">A medallion fraud-detection pipeline on Databricks, deployed live via Databricks Apps — including a bucketed CIDR range-join performance fix and FX-rate currency conversion corrections.</p>
-
-        <div class="stage-bar">
-          <div class="stage-labels">
-            <span class="on">Raw</span><span class="on">Validated</span><span class="on">Modeled</span>
-          </div>
-          <div class="stage-track">
-            <div class="raw-on"></div><div class="validated-on"></div><div class="modeled-on"></div>
-          </div>
-        </div>
-
-        <div class="metrics">
-          <div class="m"><div class="num">✓</div><div class="lab">deployed live</div></div>
-          <div class="m"><div class="num">CIDR</div><div class="lab">range-join perf fix</div></div>
-          <div class="m"><div class="num">FX</div><div class="lab">currency bug fix</div></div>
-        </div>
-
-        <div class="tags">
-          <span class="tag">Databricks</span><span class="tag">PySpark</span><span class="tag">Databricks Apps</span>
-        </div>
-
-        <div class="project-foot">
-          <div class="project-note">Workflows orchestration is the final milestone in progress. The CIDR range-join has doubled as a live technical-interview talking point.</div>
-          <a class="repo-link" href="https://github.com/Duncan610/fraud-detection-databricks-pipeline" target="_blank" rel="noopener">View repo →</a>
-        </div>
-      </article>
-
-      <!-- F1 -->
-      <article class="project">
-        <div class="project-top">
-          <div class="project-title-row">
-            <h3>F1 Data Modeling</h3>
-            <span class="badge">Unity Catalog · dbt</span>
-          </div>
-        </div>
-        <p class="project-tagline">A lap-by-lap Formula 1 star schema across the 2023–2024 seasons, chosen specifically for dimensional-modeling depth: three fact tables, five dimensions, and an SCD Type 2 driver–constructor history.</p>
-
-        <div class="stage-bar">
-          <div class="stage-labels">
-            <span class="on">Raw</span><span class="on">Validated</span><span class="on">Modeled</span>
-          </div>
-          <div class="stage-track">
-            <div class="raw-on"></div><div class="validated-on"></div><div class="modeled-on"></div>
-          </div>
-        </div>
-
-        <div class="metrics">
-          <div class="m"><div class="num">3</div><div class="lab">fact tables</div></div>
-          <div class="m"><div class="num">5</div><div class="lab">dimensions (incl. SCD2)</div></div>
-          <div class="m"><div class="num">39/40</div><div class="lab">dbt tests passing</div></div>
-          <div class="m"><div class="num">50K+</div><div class="lab">lap rows ingested</div></div>
-        </div>
-
-        <div class="tags">
-          <span class="tag">Databricks</span><span class="tag">Unity Catalog</span><span class="tag">dbt-databricks</span>
-          <span class="tag">FastF1</span><span class="tag">Jolpica-F1</span>
-        </div>
-
-        <div class="project-foot">
-          <div class="project-note">The one failing assertion is an expected null on pit-stop duration for drivers who retired mid-pit — documented, not silenced.</div>
-          <a class="repo-link" href="https://github.com/Duncan610/f1-data-modeling" target="_blank" rel="noopener">View repo →</a>
-        </div>
-      </article>
+      </div>
 
       <!-- UrbanPulse -->
-      <article class="project">
-        <div class="project-top">
-          <div class="project-title-row">
+      <div class="station reveal reveal-up">
+        <div class="station-node"></div>
+        <div class="card">
+          <div class="card-inner-glow"></div>
+          <div class="card-top">
             <h3>UrbanPulse</h3>
-            <span class="badge">dbt · Snowflake</span>
+          </div>
+          <p class="desc">A NYC city-intelligence platform blending 311 service requests, live weather, and Census ACS5 data through a Snowflake medallion architecture, with dbt, Airflow orchestration, and a live Streamlit dashboard.</p>
+          <div class="stat-row">
+            <div class="stat"><span class="num">57/57</span><span class="label">dbt tests passing</span></div>
+            <div class="stat"><span class="num">7.5/10</span><span class="label">×2 independent reviews</span></div>
+            <div class="stat"><span class="num">3</span><span class="label">merged data sources</span></div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Snowflake</span><span class="tag">dbt</span><span class="tag">Airflow</span><span class="tag">GitHub Actions</span><span class="tag">Streamlit</span>
+          </div>
+          <div class="card-links">
+            <a href="https://github.com/Duncan610/urban-pulse-analytics-pipeline" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.98 5.24.98 11.52c0 5.02 3.26 9.28 7.79 10.79.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.11-3.17.69-3.84-1.35-3.84-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.06-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.17.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.18-1.48 3.14-1.17 3.14-1.17.62 1.57.23 2.73.11 3.02.73.8 1.17 1.82 1.17 3.06 0 4.37-2.67 5.34-5.21 5.62.41.36.77 1.06.77 2.14 0 1.55-.01 2.79-.01 3.17 0 .3.2.66.79.55A11.52 11.52 0 0 0 23.02 11.5C23.02 5.24 18.27.5 12 .5Z"/></svg>
+              Source
+            </a>
           </div>
         </div>
-        <p class="project-tagline">NYC 311 requests, weather, and census data unified into one idempotent warehouse — with continuous testing and a public dashboard for exploring the result.</p>
+      </div>
 
-        <div class="stage-bar">
-          <div class="stage-labels">
-            <span class="on">Raw</span><span class="on">Validated</span><span class="on">Modeled</span>
+      <!-- F1 Data Modeling -->
+      <div class="station reveal reveal-up">
+        <div class="station-node"></div>
+        <div class="card">
+          <div class="card-inner-glow"></div>
+          <div class="card-top">
+            <h3>F1 Data Modeling</h3>
           </div>
-          <div class="stage-track">
-            <div class="raw-on"></div><div class="validated-on"></div><div class="modeled-on"></div>
+          <p class="desc">A lap-by-lap Formula 1 dimensional model across two full seasons: a complete star schema with three fact tables and five dimensions, including an SCD2 bridge tracking drivers who changed teams mid-era.</p>
+          <div class="stat-row">
+            <div class="stat"><span class="num">39/39</span><span class="label">dbt tests passing</span></div>
+            <div class="stat"><span class="num">50k+</span><span class="label">laps modeled</span></div>
+            <div class="stat"><span class="num">2</span><span class="label">seasons, 46 races</span></div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Databricks</span><span class="tag">dbt</span><span class="tag">Unity Catalog</span><span class="tag">Delta Lake</span><span class="tag">Python</span>
+          </div>
+          <div class="card-links">
+            <a href="https://github.com/Duncan610/f1-data-modeling" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.98 5.24.98 11.52c0 5.02 3.26 9.28 7.79 10.79.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.11-3.17.69-3.84-1.35-3.84-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.06-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.17.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.18-1.48 3.14-1.17 3.14-1.17.62 1.57.23 2.73.11 3.02.73.8 1.17 1.82 1.17 3.06 0 4.37-2.67 5.34-5.21 5.62.41.36.77 1.06.77 2.14 0 1.55-.01 2.79-.01 3.17 0 .3.2.66.79.55A11.52 11.52 0 0 0 23.02 11.5C23.02 5.24 18.27.5 12 .5Z"/></svg>
+              Source
+            </a>
           </div>
         </div>
+      </div>
 
-        <div class="metrics">
-          <div class="m"><div class="num">57/57</div><div class="lab">dbt tests passing</div></div>
-          <div class="m"><div class="num">✓</div><div class="lab">idempotent MERGE ingestion</div></div>
-          <div class="m"><div class="num">✓</div><div class="lab">CI/CD on GitHub Actions</div></div>
+      <!-- CinemaIQ -->
+      <div class="station reveal reveal-up">
+        <div class="station-node"></div>
+        <div class="card">
+          <div class="card-inner-glow"></div>
+          <div class="card-top">
+            <h3>CinemaIQ</h3>
+          </div>
+          <p class="desc">What actually makes a movie succeed and can the data tell us before opening weekend? Five sources (TMDB, OMDB, box office, press coverage, and search trends) merged through Airflow and dbt into Snowflake, surfaced in a Looker Studio dashboard.</p>
+          <div class="stat-row">
+            <div class="stat"><span class="num">600</span><span class="label">movies analyzed</span></div>
+            <div class="stat"><span class="num">11/11</span><span class="label">dbt tests passing</span></div>
+            <div class="stat"><span class="num">5</span><span class="label">merged data sources</span></div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">Airflow</span><span class="tag">dbt</span><span class="tag">Snowflake</span><span class="tag">Looker Studio</span><span class="tag">Python</span>
+          </div>
+          <div class="card-links">
+            <a href="https://github.com/Duncan610/cinemiq" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.98 5.24.98 11.52c0 5.02 3.26 9.28 7.79 10.79.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.11-3.17.69-3.84-1.35-3.84-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.06-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.17.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.18-1.48 3.14-1.17 3.14-1.17.62 1.57.23 2.73.11 3.02.73.8 1.17 1.82 1.17 3.06 0 4.37-2.67 5.34-5.21 5.62.41.36.77 1.06.77 2.14 0 1.55-.01 2.79-.01 3.17 0 .3.2.66.79.55A11.52 11.52 0 0 0 23.02 11.5C23.02 5.24 18.27.5 12 .5Z"/></svg>
+              Source
+            </a>
+          </div>
         </div>
+      </div>
 
-        <div class="tags">
-          <span class="tag">dbt</span><span class="tag">Snowflake</span><span class="tag">GitHub Actions</span><span class="tag">Streamlit</span>
-        </div>
-
-        <div class="project-foot">
-          <div class="project-note">Sources: NYC 311, OpenWeather, Census ACS5 — one of two foundational projects the current stack was built on.</div>
-          <a class="repo-link" href="https://github.com/Duncan610/urbanpulse" target="_blank" rel="noopener">View repo →</a>
-        </div>
-      </article>
-
-      <!-- MentalHealthPulse -->
-      <article class="project">
-        <div class="project-top">
-          <div class="project-title-row">
+      <!-- MentalHealthPulse (in progress, kept last) -->
+      <div class="station in-progress reveal reveal-up">
+        <div class="station-node"></div>
+        <div class="card">
+          <div class="card-inner-glow"></div>
+          <div class="card-top">
             <h3>MentalHealthPulse</h3>
-            <span class="badge">dlt · DuckDB · dbt</span>
+            <span class="status-tag">In progress</span>
+          </div>
+          <p class="desc">A county-level early warning system pairing social sentiment from Bluesky with CDC, NOAA, BLS, and SAMHSA data built on dlt, DuckDB, and dbt. Staging layer is live; marts are still being built.</p>
+          <div class="stat-row">
+            <div class="stat"><span class="num">2/2</span><span class="label">staging models live</span></div>
+            <div class="stat"><span class="num">10/10</span><span class="label">tests passing so far</span></div>
+          </div>
+          <div class="tag-row">
+            <span class="tag">dlt</span><span class="tag">DuckDB</span><span class="tag">dbt</span><span class="tag">Docker</span>
+          </div>
+          <div class="card-links">
+            <a href="https://github.com/Duncan610/mental" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.98 5.24.98 11.52c0 5.02 3.26 9.28 7.79 10.79.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.11-3.17.69-3.84-1.35-3.84-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.75 1.18 1.75 1.18 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.72-1.53-2.53-.29-5.19-1.27-5.19-5.63 0-1.24.44-2.26 1.17-3.06-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.17.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.18-1.48 3.14-1.17 3.14-1.17.62 1.57.23 2.73.11 3.02.73.8 1.17 1.82 1.17 3.06 0 4.37-2.67 5.34-5.21 5.62.41.36.77 1.06.77 2.14 0 1.55-.01 2.79-.01 3.17 0 .3.2.66.79.55A11.52 11.52 0 0 0 23.02 11.5C23.02 5.24 18.27.5 12 .5Z"/></svg>
+              Source
+            </a>
           </div>
         </div>
-        <p class="project-tagline">County-level sentiment risk scoring built from live Bluesky (AT Protocol) posts, with NLP sentiment scoring layered on top of a dlt + DuckDB + dbt foundation.</p>
-
-        <div class="stage-bar">
-          <div class="stage-labels">
-            <span class="on">Raw</span><span class="on">Validated</span><span>Modeled</span>
-          </div>
-          <div class="stage-track">
-            <div class="raw-on"></div><div class="validated-on"></div><div></div>
-          </div>
-        </div>
-
-        <div class="metrics">
-          <div class="m"><div class="num">✓</div><div class="lab">Milestone 1 complete</div></div>
-          <div class="m"><div class="num">✓</div><div class="lab">dbt tests passing</div></div>
-          <div class="m"><div class="num">NLP</div><div class="lab">sentiment scoring</div></div>
-        </div>
-
-        <div class="tags">
-          <span class="tag">dlt</span><span class="tag">DuckDB</span><span class="tag">dbt</span><span class="tag">Bluesky AT Protocol</span>
-        </div>
-
-        <div class="project-foot">
-          <div class="project-note">Earliest foundational build — validated and passing tests, with the modeled layer still ahead.</div>
-          <a class="repo-link" href="https://github.com/Duncan610/mentalhealthpulse" target="_blank" rel="noopener">View repo →</a>
-        </div>
-      </article>
+      </div>
 
     </div>
-  </section>
+  </div>
+</section>
 
-  <section id="method" class="wrap">
+<section id="skills">
+  <div class="wrap">
     <div class="section-head">
-      <h2>How these get built</h2>
+      <div class="kicker mono">// the stack, end to end</div>
+      <h2>Tools I build with</h2>
     </div>
-    <div class="method-grid">
-      <div class="method-card raw">
-        <div class="stage-dot"></div>
-        <h3>Raw</h3>
-        <p>Ingest the source exactly as it arrives — untyped, occasionally malformed, no assumptions made about cleanliness yet.</p>
+    <div class="skill-groups">
+      <div class="skill-group reveal reveal-up">
+        <h3>Compute & warehousing</h3>
+        <ul>
+          <li>PySpark / Databricks</li>
+          <li>Delta Lake & Unity Catalog</li>
+          <li>Snowflake</li>
+          <li>DuckDB</li>
+        </ul>
       </div>
-      <div class="method-card validated">
-        <div class="stage-dot"></div>
-        <h3>Validated</h3>
-        <p>Type, dedupe, and test. Nulls, duplicates, and referential breaks get named and either fixed or documented as expected.</p>
+      <div class="skill-group reveal reveal-up">
+        <h3>Transformation & orchestration</h3>
+        <ul>
+          <li>dbt (Core, Databricks, Snowflake)</li>
+          <li>Airflow</li>
+          <li>dlt</li>
+          <li>Databricks Workflows</li>
+        </ul>
       </div>
-      <div class="method-card modeled">
-        <div class="stage-dot"></div>
-        <h3>Modeled</h3>
-        <p>Shape into facts and dimensions someone can actually query — with the history (SCD2, where it matters) preserved correctly.</p>
+      <div class="skill-group reveal reveal-up">
+        <h3>Languages & tooling</h3>
+        <ul>
+          <li>Python (Pandas, NumPy)</li>
+          <li>SQL / PostgreSQL / MySQL</li>
+          <li>Docker</li>
+          <li>GitHub Actions</li>
+        </ul>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section id="stack" class="wrap">
-    <div class="section-head">
-      <h2>Stack</h2>
-    </div>
-    <div class="stack-cats">
-      <div class="stack-cat-row">
-        <div class="stack-cat-label">Compute &amp; storage</div>
-        <div class="stack-chips">
-          <span class="chip">Databricks</span><span class="chip">Delta Lake</span><span class="chip">Unity Catalog</span>
-          <span class="chip">Snowflake</span><span class="chip">DuckDB</span>
-        </div>
-      </div>
-      <div class="stack-cat-row">
-        <div class="stack-cat-label">Transformation</div>
-        <div class="stack-chips">
-          <span class="chip">dbt</span><span class="chip">PySpark</span><span class="chip">SQL</span><span class="chip">Pandas / NumPy</span>
-        </div>
-      </div>
-      <div class="stack-cat-row">
-        <div class="stack-cat-label">Orchestration &amp; CI</div>
-        <div class="stack-chips">
-          <span class="chip">Airflow</span><span class="chip">Databricks Workflows</span><span class="chip">GitHub Actions</span><span class="chip">Docker</span><span class="chip">Kubernetes</span>
-        </div>
-      </div>
-      <div class="stack-cat-row">
-        <div class="stack-cat-label">Ingestion &amp; other</div>
-        <div class="stack-chips">
-          <span class="chip">dlt</span><span class="chip">PostgreSQL</span><span class="chip">MySQL</span><span class="chip">Jupyter</span>
-        </div>
+<section id="contact">
+  <div class="wrap">
+    <div class="contact-card reveal reveal-scale">
+      <h2>Have a pipeline that needs building?</h2>
+      <p>I'm looking for a junior or entry-level data engineering role</p>
+      <div class="contact-actions">
+        <a class="btn btn-primary" href="mailto:otienoduncan99@gmail.com">otienoduncan99@gmail.com</a>
+        <a class="btn btn-ghost" href="https://github.com/Duncan610" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <footer id="contact" class="wrap">
-    <div class="contact-head">
-      <h2>Let's talk pipelines.</h2>
-      <p>Open to remote junior / entry-level data engineering roles across the globe</p>
-    </div>
-    <div class="contact-links">
-      <a class="btn primary" href="https://linkedin.com/in/duncan-otieno" target="_blank" rel="noopener">LinkedIn</a>
-      <a class="btn ghost" href="https://github.com/Duncan610" target="_blank" rel="noopener">GitHub</a>
-    </div>
-    <div class="foot-bottom">
-      <span>Duncan Otieno — Nairobi, Kenya</span>
-      <span class="mono">raw → validated → modeled</span>
-    </div>
-  </footer>
-</main>
+<footer>
+  <div class="wrap">Built by Duncan Otieno · Nairobi, Kenya</div>
+</footer>
+
+<script>
+  // Hero background: a slow field of drifting particles, evoking data-in-motion.
+  // Single orchestrated moment — no other scroll-triggered animation on the page.
+  const canvas = document.getElementById('hero-canvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles;
+
+  function resize(){
+    w = canvas.width = canvas.offsetWidth * devicePixelRatio;
+    h = canvas.height = canvas.offsetHeight * devicePixelRatio;
+  }
+
+  function makeParticles(){
+    const count = Math.min(70, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 16000));
+    particles = Array.from({length: count}, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: (Math.random() * 1.6 + 0.6) * devicePixelRatio,
+      vy: (Math.random() * 0.18 + 0.05) * devicePixelRatio,
+      vx: (Math.random() - 0.5) * 0.08 * devicePixelRatio,
+      a: Math.random() * 0.5 + 0.15
+    }));
+  }
+
+  function connectDistance(){ return 120 * devicePixelRatio; }
+
+  function tick(){
+    ctx.clearRect(0, 0, w, h);
+    const maxDist = connectDistance();
+
+    for(const p of particles){
+      p.x += p.vx;
+      p.y -= p.vy;
+      if(p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+      if(p.x < -10) p.x = w + 10;
+      if(p.x > w + 10) p.x = -10;
+    }
+
+    for(let i = 0; i < particles.length; i++){
+      for(let j = i + 1; j < particles.length; j++){
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < maxDist){
+          ctx.strokeStyle = `rgba(53,199,255,${0.12 * (1 - dist / maxDist)})`;
+          ctx.lineWidth = devicePixelRatio;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    for(const p of particles){
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(127,220,255,${p.a})`;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(canvas && !reduceMotion){
+    resize();
+    makeParticles();
+    requestAnimationFrame(tick);
+    window.addEventListener('resize', () => { resize(); makeParticles(); });
+  }
+
+  // --- scroll reveal: fades/slides elements in as they enter view ---
+  if(!reduceMotion && 'IntersectionObserver' in window){
+    const revealItems = document.querySelectorAll('.reveal');
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.classList.add('in-view');
+          revealObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -60px 0px' });
+    revealItems.forEach(el => revealObs.observe(el));
+
+    // --- pipeline stations "light up" as data reaches them ---
+    const stations = document.querySelectorAll('.station');
+    const stationObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting) entry.target.classList.add('active');
+      });
+    }, { threshold: 0.4 });
+    stations.forEach(el => stationObs.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
+    document.querySelectorAll('.station').forEach(el => el.classList.add('active'));
+  }
+
+  // --- cursor-tracked ambient glow ---
+  const glow = document.querySelector('.cursor-glow');
+  if(glow && !reduceMotion && matchMedia('(hover: hover)').matches){
+    window.addEventListener('pointermove', (e) => {
+      glow.style.setProperty('--mx', e.clientX + 'px');
+      glow.style.setProperty('--my', e.clientY + 'px');
+      glow.classList.add('active');
+    });
+    window.addEventListener('pointerleave', () => glow.classList.remove('active'));
+  }
+
+  // --- subtle tilt + glow-follow on project cards ---
+  if(!reduceMotion && matchMedia('(hover: hover)').matches){
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('pointermove', (e) => {
+        const r = card.getBoundingClientRect();
+        const px = e.clientX - r.left, py = e.clientY - r.top;
+        const rx = ((py / r.height) - 0.5) * -4;
+        const ry = ((px / r.width) - 0.5) * 6;
+        card.style.transform = `translateY(-3px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+        card.style.setProperty('--px', px + 'px');
+        card.style.setProperty('--py', py + 'px');
+      });
+      card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+    });
+  }
+</script>
 
 </body>
 </html>
